@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Optional, Dict, Any
 
-from enum.user_role import UserRole
+from enums.user_role import UserRole
 
 # User field validators
 from validators.user_validators import (
