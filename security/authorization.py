@@ -101,8 +101,8 @@ def can_delete_client(auth: AuthContext, *, client: _ClientLike) -> bool:
 # Commercial : peut modifier les contrats des clients DONT IL EST RESPONSABLE
 # Support : lecture seule
 
-def can_create_contract(auth: AuthContext, *, client: _ClientLike) -> bool:
-    # Le cahier des charges dit : "un collaborateur du département gestion crée un contrat"
+# Le cahier des charges dit : "un collaborateur du département gestion crée un contrat"
+def can_create_contract(auth: AuthContext) -> bool:
     return auth.is_role(Role.GESTION)
 
 def can_update_contract(auth: AuthContext, *, contract: _ContractLike) -> bool:

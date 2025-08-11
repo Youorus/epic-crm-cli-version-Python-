@@ -10,10 +10,9 @@ class OrmRepository(Generic[TOrm, TEnt]):
     Base générique. Les classes concrètes doivent fournir:
       - orm_cls: type ORM (table)
       - to_entity(orm) -> entité domaine
-      - apply_entity(orm, entité) -> None  (assigner champs ORM depuis entité)
+      - apply_entity(orm, entité) -> None
       - new_orm_from_entity(entité) -> ORM
     """
-
     orm_cls: type[TOrm]
     to_entity: Callable[[TOrm], TEnt]
     new_orm_from_entity: Callable[[TEnt], TOrm]
@@ -33,8 +32,7 @@ class OrmRepository(Generic[TOrm, TEnt]):
     def add(self, ent: TEnt) -> TEnt:
         orm = self.new_orm_from_entity(ent)
         self.s.add(orm)
-        self.s.flush()      # pour récupérer l'ID
-        self.s.refresh(orm)
+        self.s.flush()  # PK disponible
         return self.to_entity(orm)
 
     def update(self, ent: TEnt) -> TEnt:
@@ -45,7 +43,10 @@ class OrmRepository(Generic[TOrm, TEnt]):
             raise ValueError("Entité introuvable.")
         self.apply_entity(orm, ent)
         self.s.flush()
-        self.s.refresh(orm)
+        try:
+            self.s.refresh(orm)
+        except Exception:
+            pass
         return self.to_entity(orm)
 
     def delete(self, id_: int) -> None:

@@ -11,13 +11,13 @@ def event_to_entity(o: EventModel) -> Event:
         client_id=o.client_id,
         support_contact_id=o.support_contact_id,
         event_name=o.event_name,
-        event_start=datetime.fromisoformat(o.event_start),
-        event_end=datetime.fromisoformat(o.event_end),
+        event_start=o.event_start,
+        event_end=o.event_end,
         location=o.location,
         attendees=o.attendees,
         notes=o.notes,
-        created_at=datetime.fromisoformat(o.created_at),
-        updated_at=datetime.fromisoformat(o.updated_at),
+        created_at=o.created_at,
+        updated_at=o.updated_at,
     )
 
 def event_new_orm(e: Event) -> EventModel:

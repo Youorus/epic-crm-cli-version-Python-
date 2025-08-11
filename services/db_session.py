@@ -1,38 +1,37 @@
-# services/db_session.py
+from __future__ import annotations
+import os
+from pathlib import Path
 from contextlib import contextmanager
-from sqlalchemy.orm import Session
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from utils.config import DATABASE_URL
+# Compute project root: .../services/db_session.py -> project root
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+DATA_DIR = PROJECT_ROOT / "data"
+DATA_DIR.mkdir(parents=True, exist_ok=True)
+DB_PATH = DATA_DIR / "app.db"
 
-# Création de l'engine SQLAlchemy
-# echo=True pour debug SQL, à désactiver en prod
+# Allow override via env var; otherwise use absolute path under project/data
+DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{DB_PATH}")
+
 engine = create_engine(
     DATABASE_URL,
     future=True,
-    pool_pre_ping=True  # vérifie que la connexion est toujours vivante
+    pool_pre_ping=True,
 )
 
-# Fabrique de sessions
-SessionLocal = sessionmaker(bind=engine, expire_on_commit=False, class_=Session)
+SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False, future=True)
 
 @contextmanager
 def session_scope():
-    """
-    Fournit un contexte transactionnel pour les opérations sur la DB.
-
-    Usage :
-        with session_scope() as session:
-            session.add(obj)
-            ...
-    """
-    session = SessionLocal()
+    s = SessionLocal()
     try:
-        yield session
-        session.commit()
+        yield s
+        s.commit()
     except Exception:
-        session.rollback()
+        s.rollback()
         raise
     finally:
-        session.close()
+        s.close()
+
+print("[db_session] Using DB:", engine.url)

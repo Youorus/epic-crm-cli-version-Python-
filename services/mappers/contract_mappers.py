@@ -17,8 +17,8 @@ def contract_to_entity(o: ContractModel) -> Contract:
         total_amount=_to_dec(o.total_amount),
         amount_due=_to_dec(o.amount_due),
         is_signed=o.is_signed,
-        created_at=datetime.fromisoformat(o.created_at),
-        updated_at=datetime.fromisoformat(o.updated_at),
+        created_at=o.created_at,
+        updated_at=o.updated_at,
     )
 
 def contract_new_orm(e: Contract) -> ContractModel:
