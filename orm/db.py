@@ -1,7 +1,14 @@
-# src/your_app/adapters/persistence/sqlalchemy/db.py
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker
 
+DB_URL = "sqlite:///data/app.db"
+engine = create_engine(DB_URL, future=True)
+
+@event.listens_for(engine, "connect")
+def _fk_on(dbapi_conn, _):
+    dbapi_conn.execute("PRAGMA foreign_keys=ON;")
+
+SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False, future=True)
 DB_URL = "sqlite:///data/app.db"
 engine = create_engine(DB_URL, future=True)
 

@@ -1,5 +1,5 @@
-# src/your_app/adapters/persistence/sqlalchemy/init_db.py
-from sqlite.db import engine
+# src/your_app/adapters/persistence/orm/init_db.py
+from orm.db import engine
 from .models import Base
 
 def init_db():
