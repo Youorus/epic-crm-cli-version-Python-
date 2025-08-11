@@ -26,13 +26,13 @@ def event_new_orm(e: Event) -> EventModel:
         client_id=e.client_id,
         support_contact_id=e.support_contact_id,
         event_name=e.event_name,
-        event_start=e.event_start.isoformat(),
-        event_end=e.event_end.isoformat(),
+        event_start=e.event_start,  # <-- datetime direct
+        event_end=e.event_end,  # <-- datetime direct
         location=e.location,
         attendees=e.attendees,
         notes=e.notes,
-        created_at=e.created_at.isoformat(),
-        updated_at=e.updated_at.isoformat(),
+        created_at=e.created_at,
+        updated_at=e.updated_at,
     )
 
 def event_apply(orm: EventModel, e: Event) -> None:
@@ -40,9 +40,9 @@ def event_apply(orm: EventModel, e: Event) -> None:
     orm.client_id = e.client_id
     orm.support_contact_id = e.support_contact_id
     orm.event_name = e.event_name
-    orm.event_start = e.event_start.isoformat()
-    orm.event_end = e.event_end.isoformat()
+    orm.event_start = e.event_start
+    orm.event_end = e.event_end
     orm.location = e.location
     orm.attendees = e.attendees
     orm.notes = e.notes
-    orm.updated_at = e.updated_at.isoformat()
+    orm.updated_at = e.updated_at

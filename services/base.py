@@ -1,4 +1,4 @@
-# services/repositories/base.py
+# services/crud/base.py
 from typing import Generic, TypeVar, Optional, Callable, Iterable
 from sqlalchemy.orm import Session
 

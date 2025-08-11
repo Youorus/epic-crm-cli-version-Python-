@@ -25,17 +25,17 @@ def contract_new_orm(e: Contract) -> ContractModel:
     return ContractModel(
         client_id=e.client_id,
         sales_contact_id=e.sales_contact_id,
-        total_amount=str(e.total_amount),
-        amount_due=str(e.amount_due),
+        total_amount=e.total_amount,  # <-- Decimal direct (colonne Numeric)
+        amount_due=e.amount_due,  # <-- Decimal direct
         is_signed=e.is_signed,
-        created_at=e.created_at.isoformat(),
-        updated_at=e.updated_at.isoformat(),
+        created_at=e.created_at,
+        updated_at=e.updated_at,
     )
 
 def contract_apply(orm: ContractModel, e: Contract) -> None:
     orm.client_id = e.client_id
     orm.sales_contact_id = e.sales_contact_id
-    orm.total_amount = str(e.total_amount)
-    orm.amount_due = str(e.amount_due)
+    orm.total_amount = e.total_amount  # <-- pas str()
+    orm.amount_due = e.amount_due
     orm.is_signed = e.is_signed
-    orm.updated_at = e.updated_at.isoformat()
+    orm.updated_at = e.updated_at

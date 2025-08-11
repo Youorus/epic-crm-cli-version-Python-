@@ -7,8 +7,8 @@ from typing import Optional, Dict, Any
 from validators.event_validators import (
     validate_event_name,
     validate_event_location,
-    validate_event_attendees,
     validate_event_notes,
+    validate_event_attendees,
     validate_event_start,
     validate_event_end,
     validate_event_order,
@@ -40,8 +40,8 @@ class Event:
     def __post_init__(self) -> None:
         self.event_name = validate_event_name(self.event_name)
         self.location = validate_event_location(self.location)
-        self.attendees = validate_event_attendees(self.attendees)
         self.notes = validate_event_notes(self.notes)
+        self.attendees = validate_event_attendees(self.attendees)
         self.event_start = validate_event_start(self.event_start)
         self.event_end = validate_event_end(self.event_end)
         validate_event_order(self.event_start, self.event_end)

@@ -4,8 +4,8 @@ from __future__ import annotations
 import re
 from datetime import datetime, timezone
 from decimal import Decimal, ROUND_HALF_UP, InvalidOperation
-from enums import user_role
-from typing import Optional, Iterable, Any
+from enum import Enum
+from typing import Optional, Iterable, Any, Type, TypeVar
 
 # ——————————————————————————————
 # Erreur commune
@@ -56,13 +56,18 @@ def normalize_phone(value: str, *, field: str = "phone", max_len: int = 20) -> s
 # ——————————————————————————————
 # Enums / username / password
 # ——————————————————————————————
-def validate_enum(value: Any, *, enum: type[user_role], field: str = "value") -> user_role:
+E = TypeVar("E", bound=Enum)
+
+def validate_enum(value: Any, *, enum: Type[E], field: str = "value") -> E:
+    """Retourne l'élément de l'Enum `enum` correspondant à `value` (nom ou valeur, insensible à la casse)."""
     if isinstance(value, enum):
         return value
     sval = str(value).strip()
-    for m in enum:
-        if m.name == sval.upper() or (isinstance(m.value, str) and m.value.upper() == sval.upper()):
-            return m
+    for member in enum:
+        if member.name.upper() == sval.upper():
+            return member
+        if isinstance(member.value, str) and member.value.upper() == sval.upper():
+            return member
     allowed = ", ".join(m.name for m in enum)
     raise ValidationError(f"{field} inconnu. Valeurs autorisées: {allowed}.")
 
@@ -108,8 +113,6 @@ def validate_password(
 # ——————————————————————————————
 # Montants (Decimal)
 # ——————————————————————————————
-from decimal import Decimal
-
 def q2(value: Decimal | int | float | str, *, field: str = "amount") -> Decimal:
     try:
         d = Decimal(str(value))
