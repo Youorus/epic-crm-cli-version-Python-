@@ -1,0 +1,56 @@
+# === Python général ===
+__pycache__/
+*.py[cod]
+*$py.class
+
+# === Environnements virtuels ===
+.venv/
+venv/
+env/
+ENV/
+*.env
+*.env.*
+
+# === Fichiers de logs ===
+*.log
+*.pot
+
+# === Config / secrets locaux ===
+secrets.json
+config/settings_local.py
+db.sqlite3
+*.sqlite3
+
+# === Django ===
+*.pot
+*.pyc
+staticfiles/
+media/
+static/
+*.mo
+
+# === Tests ===
+.coverage
+coverage.xml
+htmlcov/
+.pytest_cache/
+.tox/
+
+# === IDE/éditeurs ===
+.vscode/
+.idea/
+*.iml
+
+# === OS files ===
+.DS_Store
+Thumbs.db
+
+# === Docker ===
+*.pid
+*.seed
+*.pid.lock
+
+# === Autres fichiers générés ===
+node_modules/
+dist/
+build/
