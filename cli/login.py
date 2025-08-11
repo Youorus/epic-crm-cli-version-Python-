@@ -11,10 +11,6 @@ import os, services.db_session as dbs
 
 def login() -> int:
     print("\n=== Connexion Epic Events (local) ===")
-
-    print("DB:", engine.url)  # juste avant d’ouvrir la session
-    print("db_session file:", dbs.__file__)
-    print("DATABASE_URL env:", os.getenv("DATABASE_URL"))
     ident = input("Email ou username: ").strip()
     password = getpass.getpass("Mot de passe: ")
 
