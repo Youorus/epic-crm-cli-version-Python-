@@ -4,6 +4,16 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone, timedelta
 from typing import Optional, Dict, Any
 
+from validators.event_validators import (
+    validate_event_name,
+    validate_event_location,
+    validate_event_attendees,
+    validate_event_notes,
+    validate_event_start,
+    validate_event_end,
+    validate_event_order,
+)
+
 def _utcnow() -> datetime:
     return datetime.now(timezone.utc)
 
@@ -28,15 +38,13 @@ class Event:
     updated_at: datetime = field(default_factory=_utcnow, kw_only=True)
 
     def __post_init__(self) -> None:
-        self.event_name = max_length(not_blank(self.event_name, field="event_name"), field="event_name", max_len=255)
-        self.location   = max_length(not_blank(self.location,   field="location"),   max_len=500, field="location")
-        self.attendees  = positive_int(self.attendees, field="attendees", min_=1)
-        # notes: facultatif, bornons à 10k chars
-        self.notes = max_length(self.notes or "", field="notes", max_len=10_000)
-
-        self.event_start = ensure_aware_utc(self.event_start, field="event_start")
-        self.event_end   = ensure_aware_utc(self.event_end,   field="event_end")
-        ensure_order(self.event_start, self.event_end, field_start="event_start", field_end="event_end")
+        self.event_name = validate_event_name(self.event_name)
+        self.location = validate_event_location(self.location)
+        self.attendees = validate_event_attendees(self.attendees)
+        self.notes = validate_event_notes(self.notes)
+        self.event_start = validate_event_start(self.event_start)
+        self.event_end = validate_event_end(self.event_end)
+        validate_event_order(self.event_start, self.event_end)
 
     @property
     def duration_minutes(self) -> int:
@@ -47,33 +55,33 @@ class Event:
         self.updated_at = _utcnow()
 
     def rename(self, new_name: str) -> None:
-        self.event_name = max_length(not_blank(new_name, field="event_name"), field="event_name", max_len=255)
+        self.event_name = validate_event_name(new_name)
         self.touch()
 
     def move(self, *, new_start: datetime, new_end: datetime) -> None:
-        ns = ensure_aware_utc(new_start, field="new_start")
-        ne = ensure_aware_utc(new_end,   field="new_end")
-        ensure_order(ns, ne, field_start="new_start", field_end="new_end")
+        ns = validate_event_start(new_start)
+        ne = validate_event_end(new_end)
+        validate_event_order(ns, ne)
         self.event_start, self.event_end = ns, ne
         self.touch()
 
     def reschedule(self, *, delta: timedelta) -> None:
         if not isinstance(delta, timedelta):
             raise ValueError("delta doit être un timedelta.")
-        self.event_start = ensure_aware_utc(self.event_start + delta, field="event_start")
-        self.event_end   = ensure_aware_utc(self.event_end + delta,   field="event_end")
+        self.event_start = validate_event_start(self.event_start + delta)
+        self.event_end = validate_event_end(self.event_end + delta)
         self.touch()
 
     def change_location(self, new_location: str) -> None:
-        self.location = max_length(not_blank(new_location, field="location"), field="location", max_len=500)
+        self.location = validate_event_location(new_location)
         self.touch()
 
     def update_notes(self, new_notes: str) -> None:
-        self.notes = max_length(new_notes or "", field="notes", max_len=10_000)
+        self.notes = validate_event_notes(new_notes)
         self.touch()
 
     def set_attendees(self, n: int) -> None:
-        self.attendees = positive_int(n, field="attendees", min_=1)
+        self.attendees = validate_event_attendees(n)
         self.touch()
 
     def assign_support_contact(self, user_id: Optional[int]) -> None:

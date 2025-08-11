@@ -5,6 +5,13 @@ from datetime import datetime, timezone
 from decimal import Decimal
 from typing import Optional, Dict, Any
 
+from validators.contract_validators import (
+    validate_total_amount,
+    validate_amount_due,
+    validate_amounts_consistency,
+    validate_payment_amount,
+)
+
 
 def _utcnow() -> datetime:
     return datetime.now(timezone.utc)
@@ -28,9 +35,9 @@ class Contract:
     updated_at: datetime = field(default_factory=_utcnow, kw_only=True)
 
     def __post_init__(self) -> None:
-        self.total_amount = money_in_range(self.total_amount, field="total_amount", min_=0)
-        self.amount_due   = money_in_range(self.amount_due,   field="amount_due",   min_=0)
-        validate_due_vs_total(self.amount_due, self.total_amount)
+        self.total_amount = validate_total_amount(self.total_amount)
+        self.amount_due   = validate_amount_due(self.amount_due)
+        validate_amounts_consistency(self.amount_due, self.total_amount)
 
     # Métier
     def touch(self) -> None:
@@ -57,21 +64,19 @@ class Contract:
         total_amount: Decimal | int | float | str | None = None,
         amount_due: Decimal | int | float | str | None = None,
     ) -> None:
-        new_total = money_in_range(total_amount if total_amount is not None else self.total_amount, field="total_amount", min_=0)
-        new_due   = money_in_range(amount_due   if amount_due   is not None else self.amount_due,   field="amount_due",   min_=0)
-        validate_due_vs_total(new_due, new_total)
+        new_total = validate_total_amount(total_amount if total_amount is not None else self.total_amount)
+        new_due   = validate_amount_due(amount_due   if amount_due   is not None else self.amount_due)
+        validate_amounts_consistency(new_due, new_total)
         self.total_amount, self.amount_due = new_total, new_due
         self.touch()
 
     def record_payment(self, amount: Decimal | int | float | str) -> Decimal:
-        payment = money_in_range(amount, field="payment", min_=0)
+        payment = validate_payment_amount(amount)
         if payment <= 0:
             raise ValueError("Le paiement doit être strictement positif.")
         if payment > self.amount_due:
             raise ValueError("Le paiement dépasse le montant dû.")
-        self.amount_due = self.amount_due - payment
-        # re-quantize via money_in_range pour robustesse
-        self.amount_due = money_in_range(self.amount_due, field="amount_due", min_=0)
+        self.amount_due = validate_amount_due(self.amount_due - payment)
         self.touch()
         return self.amount_due
 

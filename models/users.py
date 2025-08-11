@@ -7,6 +7,13 @@ from typing import Optional, Dict, Any
 
 from enum.user_role import UserRole
 
+# User field validators
+from validators.user_validators import (
+    validate_username,
+    normalize_email,
+)
+from validators.validators import validate_password, validate_enum
+
 
 def _utcnow() -> datetime:
     return datetime.now(timezone.utc)

@@ -3,6 +3,13 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import date, datetime, timezone
 from typing import Optional, Dict, Any
+from validators.client_validators import (
+    validate_client_full_name,
+    validate_client_email,
+    validate_client_phone,
+    validate_company_name,
+    validate_last_contact,
+)
 
 def _utcnow() -> datetime:
     return datetime.now(timezone.utc)
@@ -25,12 +32,12 @@ class Client:
     updated_at: datetime = field(default_factory=_utcnow, kw_only=True)
 
     def __post_init__(self) -> None:
-        self.full_name = validate_full_name(self.full_name)
-        self.email = normalize_email(self.email)
-        self.phone = normalize_phone(self.phone)
+        self.full_name = validate_client_full_name(self.full_name)
+        self.email = validate_client_email(self.email)
+        self.phone = validate_client_phone(self.phone)
         self.company_name = validate_company_name(self.company_name)
-        if self.last_contact and not isinstance(self.last_contact, date):
-            raise ValueError("last_contact doit être une date (YYYY-MM-DD).")
+        if self.last_contact is not None:
+            self.last_contact = validate_last_contact(self.last_contact)
 
     # Métier
     def touch(self) -> None:
@@ -53,11 +60,11 @@ class Client:
         company_name: Optional[str] = None,
     ) -> None:
         if full_name is not None:
-            self.full_name = validate_full_name(full_name)
+            self.full_name = validate_client_full_name(full_name)
         if email is not None:
-            self.email = normalize_email(email)
+            self.email = validate_client_email(email)
         if phone is not None:
-            self.phone = normalize_phone(phone)
+            self.phone = validate_client_phone(phone)
         if company_name is not None:
             self.company_name = validate_company_name(company_name)
         self.touch()
