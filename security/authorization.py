@@ -5,6 +5,10 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Protocol, Optional
 
+from enums.user_role import UserRole
+from models.users import User
+
+
 class Role(str, Enum):
     COMMERCIAL = "COMMERCIAL"
     SUPPORT = "SUPPORT"
@@ -123,3 +127,54 @@ def filter_events_for(auth: AuthContext, events: list[_EventLike]) -> list[_Even
     if auth.is_role(Role.COMMERCIAL):
         return events  # lecture autorisée par cahier des charges
     return []
+def can_delete_user(
+    auth: "AuthContext",
+    *,
+    user: Optional[User] = None,
+    is_last_gestion: bool = False,
+    forbid_superuser: bool = True,
+) -> bool:
+    """
+    Règles de suppression d'un collaborateur (User) :
+
+    - ✅ Seul le rôle GESTION peut supprimer des utilisateurs.
+    - ❌ On ne peut pas se supprimer soi-même.
+    - ❌ (optionnel) On empêche la suppression du *dernier* GESTION.
+    - ❌ (optionnel) On empêche la suppression d'un superuser.
+
+    Paramètres
+    ----------
+    auth : AuthContext
+        Contexte de l'utilisateur courant.
+    user : Optional[User]
+        Cible à supprimer (si fournie, on applique les garde-fous spécifiques).
+    is_last_gestion : bool
+        Indique si `user` est le *dernier* compte avec rôle GESTION (calculé côté service).
+    forbid_superuser : bool
+        Interdire la suppression d'un superuser (par défaut True).
+
+    Retour
+    ------
+    bool : True si la suppression est autorisée, False sinon.
+    """
+    # Seule la GESTION peut supprimer
+    if not auth.is_role(Role.GESTION):
+        return False
+
+    # Sans cible précise : on autorise la suppression (vérifs faites côté service)
+    if user is None:
+        return True
+
+    # Ne pas se supprimer soi-même
+    if user.id is not None and user.id == auth.user_id:
+        return False
+
+    # Éviter la suppression du dernier GESTION
+    if is_last_gestion and user.role == UserRole.GESTION:
+        return False
+
+    # Éviter la suppression d'un superuser (si activé)
+    if forbid_superuser and getattr(user, "is_superuser", False):
+        return False
+
+    return True

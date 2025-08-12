@@ -92,6 +92,7 @@ class User:
         self.last_login = (when or _utcnow()).astimezone(timezone.utc)
         self.touch()
 
+
     # Sérialisation
     def to_dict(self, *, include_private: bool = False) -> Dict[str, Any]:
         data = {
