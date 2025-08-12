@@ -9,44 +9,6 @@ from services.usecases.event_crud import EventService
 from services.usecases.user_crud import UserService
 
 
-def _input_int(prompt: str, *, allow_blank: bool = False) -> Optional[int]:
-    s = input(prompt).strip()
-    if allow_blank and s == "":
-        return None
-    if not s.isdigit():
-        raise ValueError("La valeur doit être un entier.")
-    return int(s)
-
-
-# --- Helpers rôle -------------------------------------------------------------
-
-def _role_name(val) -> str:
-    """
-    Normalise la représentation du rôle en chaîne :
-    - Enum -> .name (ex: Role.SUPPORT -> "SUPPORT")
-    - "UserRole.SUPPORT" -> "SUPPORT"
-    - "SUPPORT" -> "SUPPORT"
-    - None/unknown -> ""
-    """
-    if val is None:
-        return ""
-    # Enum (Role, UserRole, etc.) -> utiliser .name si présent
-    name = getattr(val, "name", None)
-    if isinstance(name, str):
-        return name
-    # Chaine "UserRole.SUPPORT" ou "Role.SUPPORT" -> récupérer la dernière partie
-    s = str(val)
-    if "." in s:
-        return s.split(".")[-1]
-    return s
-
-
-def _is_support_role(val) -> bool:
-    return _role_name(val).upper() == "SUPPORT"
-
-
-def _is_gestion_role(val) -> bool:
-    return _role_name(val).upper() == "GESTION"
 
 
 # --- Formulaire ---------------------------------------------------------------

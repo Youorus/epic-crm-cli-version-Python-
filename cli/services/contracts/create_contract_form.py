@@ -1,104 +1,16 @@
 # cli/forms/contracts/create_contract_form.py
 from __future__ import annotations
 
-from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
-from typing import Optional
-from datetime import datetime, timezone, date
 
+from typing import Optional
+
+from cli.services.contracts.utils import _parse_yes_no, _parse_money, _as_utc_date
 from models.contract import Contract
 from security.authorization import AuthContext, AuthzError, Role
 from services.usecases.contract_crud import ContractService
 from services.crud.client_repo import ClientRepo
 from services.db_session import session_scope
 
-
-# ─────────────────────────────────────────────────────────
-# Helpers parsing / validation
-# ─────────────────────────────────────────────────────────
-def _parse_money(raw: str) -> Decimal:
-    """
-    Accepte : '1 234,50', '1234.50', '1 234,50 €', '1234', etc.
-    Retourne un Decimal(2 décimales) ou lève ValueError.
-    """
-    if raw is None:
-        raise ValueError("Montant requis.")
-    s = str(raw).strip()
-    if not s:
-        raise ValueError("Montant requis.")
-
-    # Nettoyage : enlève symbole euro + tous les espaces (classiques & insécables)
-    for ch in ("€", " ", "\u00A0", "\u202F"):
-        s = s.replace(ch, "")
-    s = s.replace(",", ".")  # virgule -> point
-
-    try:
-        d = Decimal(s)
-    except (InvalidOperation, ValueError):
-        raise ValueError("Montant invalide.")
-
-    if d < 0:
-        raise ValueError("Le montant ne peut pas être négatif.")
-
-    # 2 décimales
-    return d.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-
-
-def _parse_yes_no(raw: str) -> bool:
-    s = (raw or "").strip().lower()
-    if s in ("o", "oui", "y", "yes", "1", "true", "vrai"):
-        return True
-    if s in ("n", "non", "no", "0", "false", "faux"):
-        return False
-    raise ValueError("Répondez par oui/oui (o) ou non (n).")
-
-
-def _input_int(prompt: str, allow_blank: bool = False) -> Optional[int]:
-    s = input(prompt).strip()
-    if allow_blank and s == "":
-        return None
-    if not s.isdigit():
-        raise ValueError("La valeur doit être un entier.")
-    return int(s)
-
-
-def _as_utc_date(dt: Optional[datetime]) -> date:
-    """
-    Convertit un datetime (aware/naive/None) en date (YYYY-MM-DD).
-    Si None, utilise maintenant (UTC).
-    """
-    if dt is None:
-        return datetime.now(timezone.utc).date()
-    if dt.tzinfo is None:
-        # Considère naive comme UTC (évite les surprises)
-        return dt.replace(tzinfo=timezone.utc).date()
-    return dt.astimezone(timezone.utc).date()
-
-
-# ─────────────────────────────────────────────────────────
-# Sélection/validation client
-# ─────────────────────────────────────────────────────────
-def _pick_client_id() -> int:
-    """
-    Demande un client_id et vérifie son existence en base.
-    Retourne le client_id si OK, lève ValueError sinon.
-    """
-    with session_scope() as sess:
-        repo = ClientRepo(sess)
-
-        while True:
-            try:
-                cid = _input_int("   🔗 ID du client : ")
-            except ValueError as e:
-                print(f"   ❌ {e}")
-                continue
-
-            client = repo.get(cid) if cid is not None else None
-            if not client:
-                print("   ❌ Client introuvable. Réessayez.")
-                continue
-
-            print(f"   ✅ Client: {client.full_name} — {client.company_name}")
-            return cid  # type: ignore[return-value]
 
 
 # ─────────────────────────────────────────────────────────

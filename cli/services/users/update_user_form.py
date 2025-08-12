@@ -2,12 +2,10 @@
 from __future__ import annotations
 
 import os
-import re
 import hashlib
 from getpass import getpass
 from typing import Optional
-
-from enums.user_role import UserRole
+from cli.services.users.utils import _input_int, _prompt_keep_or_change, _validate_email, _yes_no, _choose_role
 from models.users import User
 from security.authorization import AuthContext, AuthzError, Role
 from services.usecases.user_crud import UserService
@@ -15,67 +13,6 @@ from services.crud.user_repo import UserRepo
 from services.db_session import session_scope
 
 
-# ─────────────────────────────────────────────────────────
-# Helpers validations / UI
-# ─────────────────────────────────────────────────────────
-_EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
-
-
-def _validate_email(email: str) -> None:
-    if not email or not _EMAIL_RE.match(email):
-        raise ValueError("Adresse email invalide.")
-
-
-def _input_int(prompt: str) -> Optional[int]:
-    s = input(prompt).strip()
-    if s.lower() == "retour":
-        return None
-    if not s.isdigit():
-        print("   ❌ L’ID doit être un entier.")
-        return _input_int(prompt)
-    return int(s)
-
-
-def _prompt_keep_or_change(prompt: str, current: str) -> str:
-    """
-    Affiche la valeur actuelle et permet de la modifier.
-    Entrée vide → on garde la valeur courante.
-    """
-    s = input(f"   {prompt} [{current}] : ").strip()
-    if s.lower() == "retour":
-        raise KeyboardInterrupt
-    return current if s == "" else s
-
-
-def _choose_role(default: UserRole) -> UserRole:
-    roles = list(UserRole)
-    print("\n   🔐 Rôle courant :", default.name)
-    for i, r in enumerate(roles, start=1):
-        print(f"   {i}. {r.name}")
-    while True:
-        raw = input(f"   Choisir un rôle (1..{len(roles)}) [Enter pour garder {default.name}] : ").strip()
-        if raw.lower() == "retour":
-            raise KeyboardInterrupt
-        if raw == "":
-            return default
-        if raw.isdigit():
-            idx = int(raw)
-            if 1 <= idx <= len(roles):
-                return roles[idx - 1]
-        print("   ❌ Choix invalide.")
-
-
-def _yes_no(prompt: str, default: bool) -> bool:
-    suf = "[O/n]" if default else "[o/N]"
-    while True:
-        s = input(f"   {prompt} {suf} : ").strip().lower()
-        if s == "":
-            return default
-        if s in ("o", "oui", "y", "yes", "1", "true"):
-            return True
-        if s in ("n", "non", "no", "0", "false"):
-            return False
-        print("   ❌ Réponse invalide. Tapez o/n.")
 
 
 # ─────────────────────────────────────────────────────────

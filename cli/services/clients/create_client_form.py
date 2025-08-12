@@ -1,35 +1,13 @@
 from __future__ import annotations
 
 from typing import Optional
+
+from cli.services.clients.utils import _req_str, _opt_str, _confirm
 from models.clients import Client
 from security.authorization import AuthContext, AuthzError, Role
 from services.usecases.client_crud import ClientService
 
-# -------- Helpers de saisie/validation --------
-def _req_str(prompt: str) -> Optional[str]:
-    """
-    Demande une chaîne non-vide. Retourne None si l'utilisateur tape 'retour'.
-    Ne fait *aucun* print de debug pour éviter les doubles affichages.
-    """
-    while True:
-        s = input(prompt).strip()
-        if s.lower() == "retour":
-            return None
-        if s != "":
-            return s
-        print("   ❌ Champ obligatoire.")
 
-def _opt_str(prompt: str) -> Optional[str]:
-    """
-    Demande une chaîne optionnelle (peut être vide). 'retour' annule.
-    """
-    s = input(prompt).strip()
-    if s.lower() == "retour":
-        return None
-    return s or ""
-
-def _confirm(prompt: str = "   Confirmer ? (o/N) : ") -> bool:
-    return input(prompt).strip().lower() == "o"
 
 # -------- Formulaire principal --------
 def create_client_form(*, service: ClientService, auth: AuthContext) -> Optional[Client]:

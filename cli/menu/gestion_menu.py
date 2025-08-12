@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from cli.auth.login import logout
-from cli.services.users.update_contract_form import update_contract_form
+from cli.services.contracts.update_contract_form import update_contract_form
 # --- Auth / session ---
 from security.auth_session import get_auth
 from security.authorization import Role

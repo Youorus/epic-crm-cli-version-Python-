@@ -5,73 +5,9 @@ from typing import List, Optional, Any
 from datetime import datetime, date
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 
+from cli.services.contracts.utils import _to_decimal, _clip, _fmt_euro, _date_only
 from services.usecases.contract_crud import ContractService
 from security.authorization import AuthContext, AuthzError
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Helpers de normalisation / affichage
-# ─────────────────────────────────────────────────────────────────────────────
-
-def _clip(val: Any, width: int) -> str:
-    """Coupe proprement une chaîne pour tenir dans 'width' colonnes."""
-    s = "" if val is None else str(val)
-    return (s[: width - 1] + "…") if len(s) > width else s
-
-
-def _to_decimal(val: Any) -> Decimal:
-    """
-    Convertit n’importe quelle valeur en Decimal(2 décimales) de façon robuste.
-    Accepte Decimal, int, float, str (avec €, espaces, séparateur ','), None.
-    """
-    if val is None:
-        return Decimal("0.00")
-
-    if isinstance(val, Decimal):
-        # force 2 décimales
-        return val.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-
-    if isinstance(val, (int, float)):
-        # float -> passer par str pour éviter les surprises binaires
-        return Decimal(str(val)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-
-    # str (ou autre -> cast en str)
-    s = str(val).strip()
-    if not s:
-        return Decimal("0.00")
-
-    # nettoyer symbole € + espaces (y compris espace fine insécable)
-    s = s.replace("€", "").replace("\u202f", "").replace(" ", "")
-    # séparateur FR -> EN
-    s = s.replace(",", ".")
-
-    try:
-        return Decimal(s).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-    except (InvalidOperation, ValueError):
-        # Valeur irrécupérable -> 0.00
-        return Decimal("0.00")
-
-
-def _to_float(val: Any) -> float:
-    """Retourne un float à partir de n’importe quelle valeur monétaire."""
-    return float(_to_decimal(val))
-
-
-def _fmt_euro(amount: Any) -> str:
-    """
-    Formate proprement en euros (12 345,67 €), quelle que soit la forme d’entrée.
-    On passe toujours par Decimal → float pour un formatage stable.
-    """
-    v = _to_float(amount)
-    txt = f"{v:,.2f}".replace(",", " ").replace(".", ",")  # 12345.67 -> "12 345,67"
-    return f"{txt} €"
-
-
-def _date_only(val: Any) -> str:
-    """Affiche YYYY-MM-DD si val est un datetime/date, sinon retourne tel quel."""
-    if isinstance(val, (datetime, date)):
-        return val.strftime("%Y-%m-%d")
-    return str(val) if val is not None else "—"
 
 
 # ─────────────────────────────────────────────────────────────────────────────

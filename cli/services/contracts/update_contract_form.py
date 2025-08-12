@@ -4,6 +4,7 @@ from __future__ import annotations
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from typing import Optional
 
+from cli.services.contracts.utils import _input_int_optional, _input_money_optional, _parse_yes_no_optional
 from models.contract import Contract
 from security.authorization import AuthContext, AuthzError, Role
 from services.usecases.contract_crud import ContractService
@@ -11,59 +12,6 @@ from services.crud.client_repo import ClientRepo
 from services.db_session import session_scope
 
 
-# ─────────────────────────────────────────────────────────
-# Helpers parsing / validation (alignés avec create_contract_form)
-# ─────────────────────────────────────────────────────────
-def _parse_money(raw: str) -> Decimal:
-    """
-    Accepte : '1 234,50', '1234.50', '1 234,50 €', '1234', etc.
-    Retourne un Decimal(2 décimales) ou lève ValueError.
-    """
-    if raw is None:
-        raise ValueError("Montant requis.")
-    s = str(raw).strip()
-    if not s:
-        raise ValueError("Montant requis.")
-    for ch in ("€", " ", "\u00A0", "\u202F"):
-        s = s.replace(ch, "")
-    s = s.replace(",", ".")
-    try:
-        d = Decimal(s)
-    except (InvalidOperation, ValueError):
-        raise ValueError("Montant invalide.")
-    if d < 0:
-        raise ValueError("Le montant ne peut pas être négatif.")
-    return d.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-
-
-def _parse_yes_no_optional(raw: str, *, default: bool) -> bool:
-    s = (raw or "").strip().lower()
-    if s == "":
-        return default
-    if s in ("o", "oui", "y", "yes", "1", "true", "vrai"):
-        return True
-    if s in ("n", "non", "no", "0", "false", "faux"):
-        return False
-    raise ValueError("Répondez par oui/oui (o) ou non (n), ou laissez vide pour conserver la valeur.")
-
-
-def _input_int_optional(prompt: str) -> Optional[int]:
-    """
-    Lit un entier ou vide (→ None).
-    """
-    s = input(prompt).strip()
-    if s == "":
-        return None
-    if not s.isdigit():
-        raise ValueError("La valeur doit être un entier.")
-    return int(s)
-
-
-def _input_money_optional(prompt: str) -> Optional[Decimal]:
-    s = input(prompt).strip()
-    if s == "":
-        return None
-    return _parse_money(s)
 
 
 # ─────────────────────────────────────────────────────────

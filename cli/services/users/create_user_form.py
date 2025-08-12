@@ -1,84 +1,17 @@
 # cli/services/users/create_user_form.py
 from __future__ import annotations
 
-import os
-import re
-import hashlib
+
 from getpass import getpass
-from datetime import datetime, timezone
+
 from typing import Optional
 
-from enums.user_role import UserRole
+from cli.services.users.utils import _validate_email, _choose_role, _yes_no, _set_password_on_user
 from models.users import User
 from security.authorization import AuthContext, AuthzError, Role
 from services.usecases.user_crud import UserService
 from services.crud.user_repo import UserRepo
 from services.db_session import session_scope
-
-
-# ─────────────────────────────────────────────────────────
-# Helpers validations / sécurité
-# ─────────────────────────────────────────────────────────
-_EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
-
-
-def _validate_email(email: str) -> None:
-    if not email or not _EMAIL_RE.match(email):
-        raise ValueError("Adresse email invalide.")
-
-
-def _choose_role() -> UserRole:
-    """Propose la sélection du rôle à partir de UserRole."""
-    roles = list(UserRole)
-    print("\n   🔐 Choisissez un rôle :")
-    for i, r in enumerate(roles, start=1):
-        print(f"   {i}. {r.name}")
-    while True:
-        raw = input("   Votre choix (1..n) : ").strip()
-        if raw.lower() == "retour":
-            raise KeyboardInterrupt
-        if raw.isdigit():
-            idx = int(raw)
-            if 1 <= idx <= len(roles):
-                return roles[idx - 1]
-        print("   ❌ Choix invalide.")
-
-
-def _yes_no(prompt: str, default: bool = True) -> bool:
-    suf = "[O/n]" if default else "[o/N]"
-    while True:
-        s = input(f"   {prompt} {suf} : ").strip().lower()
-        if s == "":
-            return default
-        if s in ("o", "oui", "y", "yes", "1", "true"):
-            return True
-        if s in ("n", "non", "no", "0", "false"):
-            return False
-        print("   ❌ Réponse invalide. Tapez o/n.")
-
-
-def _hash_password(password: str) -> tuple[bytes, bytes]:
-    """
-    Hash minimaliste (scrypt) si ton domaine n'expose pas user.set_password().
-    Retourne (salt, hash).
-    """
-    salt = os.urandom(16)
-    dk = hashlib.scrypt(password.encode("utf-8"), salt=salt, n=2**14, r=8, p=1, dklen=64)
-    return salt, dk
-
-
-def _set_password_on_user(u: User, password: str) -> None:
-    """
-    Essaie d'utiliser u.set_password(); sinon renseigne _password_salt/_password_hash.
-    """
-    if hasattr(u, "set_password") and callable(getattr(u, "set_password")):
-        u.set_password(password)  # type: ignore[attr-defined]
-        return
-    # fallback privé si le domaine ne fournit pas set_password
-    salt, h = _hash_password(password)
-    setattr(u, "_password_salt", salt)
-    setattr(u, "_password_hash", h)
-
 
 # ─────────────────────────────────────────────────────────
 # Formulaire principal

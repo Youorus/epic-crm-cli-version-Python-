@@ -1,7 +1,7 @@
 # cli/forms/users/delete_user_form.py
 from __future__ import annotations
 
-from typing import Optional
+from cli.services.users.utils import _input_id_or_retour
 from enums.user_role import UserRole
 from security.authorization import AuthContext, AuthzError, can_delete_user
 from services.usecases.user_crud import UserService
@@ -9,14 +9,7 @@ from services.db_session import session_scope
 from services.crud.user_repo import UserRepo
 
 
-def _input_id_or_retour(prompt: str) -> Optional[int]:
-    s = input(prompt).strip()
-    if s.lower() == "retour":
-        return None
-    if not s.isdigit():
-        print("   ❌ L’ID doit être un entier.")
-        return _input_id_or_retour(prompt)
-    return int(s)
+
 
 
 def delete_user_form(*, service: UserService, auth: AuthContext) -> None:

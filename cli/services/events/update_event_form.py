@@ -3,30 +3,13 @@ from __future__ import annotations
 
 from typing import Optional
 from datetime import datetime
+
+from cli.services.events.utils import _parse_dt
 from security.authorization import AuthContext, AuthzError, Role
 from services.usecases.event_crud import EventService
 
 
 _ACCEPTED = "YYYY-MM-DD HH:MM[,SS] ou YYYY-MM-DDTHH:MM[,SS]"
-
-
-def _parse_dt(raw: str) -> datetime:
-    s = (raw or "").strip()
-    for fmt in ("%Y-%m-%d %H:%M", "%Y-%m-%d %H:%M:%S", "%Y-%m-%dT%H:%M", "%Y-%m-%dT%H:%M:%S"):
-        try:
-            return datetime.strptime(s, fmt)
-        except ValueError:
-            continue
-    raise ValueError(f"Date/heure invalide. Formats acceptés : {_ACCEPTED}.")
-
-
-def _input_int(prompt: str, allow_blank: bool = False) -> Optional[int]:
-    s = input(prompt).strip()
-    if allow_blank and s == "":
-        return None
-    if not s.isdigit():
-        raise ValueError("La valeur doit être un entier.")
-    return int(s)
 
 
 def update_event_form_support(

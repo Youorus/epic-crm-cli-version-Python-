@@ -2,8 +2,8 @@
 from __future__ import annotations
 
 from typing import List, Optional, Any, Dict, Iterable
-from datetime import datetime, date
 
+from cli.services.events.utils import _build_maps, _clip, _fmt_dt
 from security.authorization import AuthContext, AuthzError
 from services.usecases.event_crud import EventService
 
@@ -17,59 +17,6 @@ except Exception:  # pragma: no cover - si pas de repos disponibles
     ClientRepo = None     # type: ignore
     UserRepo = None       # type: ignore
 
-
-# ─────────────────────────────────────────────────────────
-# Helpers d'affichage locaux (autonomes)
-# ─────────────────────────────────────────────────────────
-def _clip(val: Any, width: int) -> str:
-    """Coupe proprement une chaîne pour tenir dans 'width' colonnes."""
-    s = "" if val is None else str(val)
-    return (s[: width - 1] + "…") if len(s) > width else s
-
-
-def _fmt_dt(dt: Any) -> str:
-    """Affiche 'YYYY-MM-DD HH:MM' si datetime, 'YYYY-MM-DD' si date, sinon str/—."""
-    if isinstance(dt, datetime):
-        return dt.strftime("%Y-%m-%d %H:%M")
-    if isinstance(dt, date):
-        return dt.strftime("%Y-%m-%d")
-    return str(dt) if dt is not None else "—"
-
-
-def _build_maps(events: Iterable[Any]) -> tuple[Dict[int, str], Dict[int, str]]:
-    """
-    Construit 2 maps:
-      - client_names[client_id] = client.full_name (fallback "Client #id")
-      - user_names[user_id]     = user.username   (fallback "User #id")
-    Fonctionne seulement si les repos sont dispo; sinon, renvoie des maps vides.
-    """
-    client_names: Dict[int, str] = {}
-    user_names: Dict[int, str] = {}
-
-    if not (session_scope and ClientRepo and UserRepo):
-        return client_names, user_names
-
-    client_ids = {int(e.client_id) for e in events if getattr(e, "client_id", None)}
-    user_ids = {int(e.support_contact_id) for e in events if getattr(e, "support_contact_id", None)}
-
-    if not client_ids and not user_ids:
-        return client_names, user_names
-
-    with session_scope() as s:
-        if client_ids:
-            crepo = ClientRepo(s)
-            for cid in client_ids:
-                c = crepo.get(cid)
-                if c:
-                    client_names[cid] = getattr(c, "full_name", None) or f"Client #{cid}"
-        if user_ids:
-            urepo = UserRepo(s)
-            for uid in user_ids:
-                u = urepo.get(uid)
-                if u:
-                    user_names[uid] = getattr(u, "username", None) or f"User #{uid}"
-
-    return client_names, user_names
 
 
 # ─────────────────────────────────────────────────────────
