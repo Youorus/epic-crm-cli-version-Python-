@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from cli.services.events.assign_support_form import assign_support_to_event_form
+from cli.services.users.create_user_form import create_user_form
 from security.auth_session import get_auth
 from security.authorization import Role
 
@@ -121,9 +122,11 @@ def gestion_menu() -> None:
 
         # 8) Création collaborateur (désactivé)
         elif choice == "8":
-            print("ℹ️ Action désactivée (création collaborateur).")
-            # from cli.forms.users.create_user_form import create_user_form
-            # create_user_form()
+            auth = get_auth()
+            if not auth:
+                print("❌ Session expirée.")
+            else:
+                create_user_form(service=UserService(), auth=auth)
 
         # 9) Modification collaborateur (désactivé)
         elif choice == "9":
