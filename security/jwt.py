@@ -3,7 +3,8 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Union
+from security.authorization import Role
 import jwt  # PyJWT
 
 JWT_SECRET = os.getenv("JWT_SECRET", "change-me-in-prod-please")
@@ -14,8 +15,25 @@ REFRESH_EXPIRES_DAYS = int(os.getenv("JWT_REFRESH_DAYS", "14"))  # ~2 semaines
 @dataclass(frozen=True)
 class AuthContext:
     user_id: int
-    role: str
+    role: Union[Role, str]
     scopes: tuple[str, ...] = ()
+
+    def is_role(self, *roles: Role) -> bool:
+        """
+        Returns True if the current role matches any of the provided roles.
+        Converts from str to Role if necessary.
+        """
+        current_role = self.role_enum
+        return any(current_role == r for r in roles)
+
+    @property
+    def role_enum(self) -> Role:
+        """
+        Returns the role as a Role enum, converting from str if needed.
+        """
+        if isinstance(self.role, Role):
+            return self.role
+        return Role(self.role)
 
 class AuthError(Exception): ...
 

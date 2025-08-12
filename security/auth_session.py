@@ -1,8 +1,10 @@
-# security/session_state.py
+# security/auth_session.py
 from __future__ import annotations
 import json, os
 from typing import Optional
+from dataclasses import replace
 from security.jwt import decode_token, decode_refresh, create_access_token, AuthContext, AuthError
+from security.authorization import Role
 
 _SESSION_DIR = os.path.join(os.path.expanduser("~"), ".epic_events")
 _SESSION_FILE = os.path.join(_SESSION_DIR, "session.json")
@@ -10,6 +12,18 @@ _SESSION_FILE = os.path.join(_SESSION_DIR, "session.json")
 _current_access: Optional[str] = None
 _current_refresh: Optional[str] = None
 _current_auth: Optional[AuthContext] = None
+
+def _normalize_role(auth: AuthContext) -> AuthContext:
+    """Retourne un AuthContext avec un rôle normalisé en enum `Role`.
+    Ne modifie pas l'instance en place (utile si AuthContext est gelé/read-only).
+    """
+    try:
+        if isinstance(auth.role, str):
+            return replace(auth, role=Role(auth.role))
+        return auth
+    except Exception:
+        # Si la conversion échoue (valeur de rôle inattendue), on renvoie tel quel
+        return auth
 
 def save_tokens(access_token: str, refresh_token: str) -> None:
     """Enregistre les deux tokens (mémoire + fichier)."""
@@ -20,6 +34,7 @@ def save_tokens(access_token: str, refresh_token: str) -> None:
     _current_access = access_token
     _current_refresh = refresh_token
     _current_auth = decode_token(access_token)
+    _current_auth = _normalize_role(_current_auth)
 
 def load_tokens() -> tuple[Optional[str], Optional[str]]:
     global _current_access, _current_refresh, _current_auth
@@ -35,6 +50,7 @@ def load_tokens() -> tuple[Optional[str], Optional[str]]:
         if _current_access:
             try:
                 _current_auth = decode_token(_current_access)
+                _current_auth = _normalize_role(_current_auth)
             except Exception:
                 _current_auth = None
         return _current_access, _current_refresh
@@ -65,6 +81,7 @@ def ensure_access_token() -> Optional[str]:
     if access:
         try:
             _current_auth = decode_token(access)
+            _current_auth = _normalize_role(_current_auth)
             _current_access = access
             return access
         except AuthError:
@@ -86,17 +103,30 @@ def ensure_access_token() -> Optional[str]:
     return new_access
 
 def get_auth() -> Optional[AuthContext]:
-    """Renvoie l'AuthContext courant (après refresh auto si nécessaire)."""
+    """
+    Renvoie l'AuthContext courant (après refresh auto si nécessaire).
+    Garantit que l’objet retourné est bien un AuthContext de security.authorization.
+    """
     global _current_auth
+
     token = ensure_access_token()
     if not token:
+        _current_auth = None
         return None
-    # ensure_access_token a déjà peuplé _current_auth si possible
-    if _current_auth:
+
+    if _current_auth is not None:
         return _current_auth
+
     try:
-        _current_auth = decode_token(token)
+        auth = decode_token(token)
+        auth = _normalize_role(auth)
+        if not isinstance(auth, AuthContext):
+            # Sécurisation supplémentaire (au cas où decode_token change un jour)
+            raise TypeError(f"decode_token n'a pas renvoyé un AuthContext : {type(auth)!r}")
+        _current_auth = auth
         return _current_auth
     except Exception:
+        # Token corrompu/claims inattendus → on purge et on force une reconnexion
         clear_token()
+        _current_auth = None
         return None

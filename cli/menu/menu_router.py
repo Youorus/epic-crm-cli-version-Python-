@@ -1,9 +1,6 @@
 # cli/menus/menu_router.py
 from __future__ import annotations
 
-
-
-
 from cli.menu.commercial_menu import commercial_menu
 from cli.menu.gestion_menu import gestion_menu
 from cli.menu.support_menu import support_menu
@@ -27,8 +24,10 @@ def show_menu() -> None:
         print("❌ Aucun utilisateur connecté. Veuillez vous authentifier.")
         return
 
+
     if username:
         print(f"👋 Bonjour {username} ({role})")
+
 
     if role == "GESTION":
         gestion_menu()

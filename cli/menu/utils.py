@@ -1,6 +1,6 @@
 from sqlalchemy.orm import session
 
-from security.session_state import get_auth
+from security.auth_session import get_auth
 
 
 def _current_username() -> str | None:

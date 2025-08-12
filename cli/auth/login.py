@@ -5,7 +5,7 @@ import getpass
 from services.crud.user_repo import UserRepo
 from security.passwords import verify_password
 from security.jwt import create_access_token, create_refresh_token
-from security.session_state import save_tokens, clear_token, get_auth
+from security.auth_session import save_tokens, clear_token, get_auth
 from services.db_session import session_scope, engine
 
 def login() -> int:
