@@ -60,8 +60,16 @@ def can_update_client(auth: AuthContext, *, client: _ClientLike) -> bool:
 def can_delete_client(auth: AuthContext, *, client: _ClientLike) -> bool:
     return auth.is_role(Role.GESTION)
 
-def can_create_contract(auth: AuthContext) -> bool:
+def can_create_contract(auth: AuthContext, **kwargs) -> bool:
     return auth.is_role(Role.GESTION)
+
+def can_read_users(auth: AuthContext) -> bool:
+    """
+    Vérifie si l'utilisateur a le droit de lire la liste des utilisateurs.
+    Règle métier :
+    - Seul un utilisateur avec le rôle GESTION peut lire tous les utilisateurs.
+    """
+    return bool(auth and auth.is_role(Role.GESTION))
 
 def can_update_contract(auth: AuthContext, *, contract: _ContractLike) -> bool:
     if auth.is_role(Role.GESTION):

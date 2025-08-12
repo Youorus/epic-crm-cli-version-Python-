@@ -55,4 +55,3 @@ class ContractService:
             if not can_delete_contract(auth, contract=existing):
                 raise AuthzError("Accès refusé : suppression contrat interdite.")
             repo.delete(contract_id)
-

@@ -3,9 +3,15 @@ from __future__ import annotations
 
 from typing import Optional
 
+from cli.services.contracts.create_contract_form import create_contract_form
+from cli.services.contracts.list_contracts import list_contracts
+from cli.services.clients.list_clients import list_clients
+from cli.services.users.list_users import list_users  # ⬅️ NEW
+
 from security.auth_session import get_auth
 from services.usecases.client_crud import ClientService
-from cli.services.clients.list_clients import list_clients as cli_list_clients
+from services.usecases.contract_crud import ContractService
+from services.usecases.user_crud import UserService  # ⬅️ NEW (ton use-case Users)
 
 
 def gestion_menu() -> None:
@@ -37,27 +43,27 @@ def gestion_menu() -> None:
         print("8. Créer un collaborateur")
         print("9. Modifier un collaborateur")
         print("10. Supprimer un collaborateur")
+        print("11. Lister les collaborateurs")  # ⬅️ NEW
         print("0. Retour")
 
         choice = input("\nVotre choix : ").strip()
 
         if choice == "1":
-            # Liste via use case (droits & filtrage côté service)
             try:
                 service = ClientService()
-                cli_list_clients(service=service, auth=auth, display=True, as_table=True)
+                list_clients(service=service, auth=auth, display=True, as_table=True)
             except Exception as e:
                 print(f"❌ Impossible d’afficher les clients : {e}")
 
         elif choice == "2":
-            print("ℹ️ Action désactivée (listing contrats).")
-            # from cli.services.contracts.get_contracts import list_contracts
-            # list_contracts(display=True)
+            service = ContractService()
+            list_contracts(service=service, auth=auth, display=True, as_table=True)
 
         elif choice == "3":
-            print("ℹ️ Action désactivée (création contrat).")
-            # from cli.forms.contracts.contract_update_form import create_contract_form
-            # create_contract_form()
+            if not auth:
+                print("❌ Session expirée.")
+            else:
+                create_contract_form(service=ContractService(), auth=auth)
 
         elif choice == "4":
             print("ℹ️ Action désactivée (modification contrat).")
@@ -111,6 +117,13 @@ def gestion_menu() -> None:
             print("ℹ️ Action désactivée (suppression collaborateur).")
             # from cli.forms.users.user_delete_form import delete_user_form
             # delete_user_form()
+
+        elif choice == "11":
+            try:
+                service = UserService()
+                list_users(service=service, auth=auth, display=True, as_table=True)
+            except Exception as e:
+                print(f"❌ Impossible d’afficher les collaborateurs : {e}")
 
         elif choice == "0":
             return

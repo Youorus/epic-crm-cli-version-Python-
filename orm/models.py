@@ -87,7 +87,7 @@ class ContractModel(Base):
         ForeignKey("users.id", ondelete="SET NULL")
     )
 
-    # IMPORTANT: Decimal + asdecimal=True
+    # IMPORTANT : asdecimal=True pour récupérer/stocker des Decimal (pas des str)
     total_amount: Mapped[Decimal] = mapped_column(Numeric(10, 2, asdecimal=True), nullable=False)
     amount_due:   Mapped[Decimal] = mapped_column(Numeric(10, 2, asdecimal=True), nullable=False)
 
