@@ -7,7 +7,6 @@ from security.passwords import verify_password
 from security.jwt import create_access_token, create_refresh_token
 from security.session_state import save_tokens, clear_token, get_auth
 from services.db_session import session_scope, engine
-import os, services.db_session as dbs
 
 def login() -> int:
     print("\n=== Connexion Epic Events (local) ===")
