@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from cli.services.events.assign_support_form import assign_support_to_event_form
 from cli.services.users.create_user_form import create_user_form
+from cli.services.users.update_user_form import update_user_form
 from security.auth_session import get_auth
 from security.authorization import Role
 
@@ -130,9 +131,11 @@ def gestion_menu() -> None:
 
         # 9) Modification collaborateur (désactivé)
         elif choice == "9":
-            print("ℹ️ Action désactivée (modification collaborateur).")
-            # from cli.forms.users.user_update_form import update_user_form
-            # update_user_form()
+            auth = get_auth()
+            if not auth:
+                print("❌ Session expirée.")
+            else:
+                update_user_form(service=UserService(), auth=auth)
 
         # 10) Suppression collaborateur (désactivé)
         elif choice == "10":
