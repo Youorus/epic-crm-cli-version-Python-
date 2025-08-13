@@ -1,4 +1,5 @@
 # 📌 Epic CRM CLI Version — Gestion Commerciale, Gestion & Support
+<img width="1920" height="520" alt="16903799358611_P12-02" src="https://github.com/user-attachments/assets/b60538da-1d34-4eb5-9d87-b7c417aaa775" />
 
 ![Python](https://img.shields.io/badge/python-3.12-blue.svg)
 ![SQLite](https://img.shields.io/badge/sqlite-lightblue.svg)
