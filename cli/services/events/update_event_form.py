@@ -7,7 +7,8 @@ from datetime import datetime
 from cli.services.events.utils import _parse_dt
 from security.authorization import AuthContext, AuthzError, Role
 from services.usecases.event_crud import EventService
-
+import builtins as _builtins
+input = _builtins.input
 
 _ACCEPTED = "YYYY-MM-DD HH:MM[,SS] ou YYYY-MM-DDTHH:MM[,SS]"
 

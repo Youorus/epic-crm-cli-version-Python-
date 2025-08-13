@@ -1,4 +1,4 @@
-# cli/forms/users/delete_user_form.py
+# cli/forms/user/delete_user_form.py
 from __future__ import annotations
 
 from cli.services.users.utils import _input_id_or_retour

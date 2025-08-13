@@ -2,7 +2,7 @@
 import sqlite3
 from pathlib import Path
 
-DB_PATH = Path("data/app.db")
+DB_PATH = Path("database/app.db")
 DB_PATH.parent.mkdir(parents=True, exist_ok=True)
 
 def get_conn() -> sqlite3.Connection:
@@ -16,7 +16,7 @@ def init_db():
 
     # Exemple minimal de tables (adapte à tes besoins)
     cur.execute("""
-    CREATE TABLE IF NOT EXISTS users (
+    CREATE TABLE IF NOT EXISTS user (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         username TEXT NOT NULL,
         email TEXT NOT NULL UNIQUE,
@@ -44,7 +44,7 @@ def init_db():
         sales_contact_id INTEGER,
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL,
-        FOREIGN KEY (sales_contact_id) REFERENCES users(id) ON DELETE SET NULL
+        FOREIGN KEY (sales_contact_id) REFERENCES user(id) ON DELETE SET NULL
     );
     """)
 
@@ -59,7 +59,7 @@ def init_db():
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL,
     FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
-    FOREIGN KEY (sales_contact_id) REFERENCES users(id) ON DELETE SET NULL
+    FOREIGN KEY (sales_contact_id) REFERENCES user(id) ON DELETE SET NULL
 );
     """)
 
@@ -79,7 +79,7 @@ def init_db():
         updated_at TEXT NOT NULL,
         FOREIGN KEY (contract_id) REFERENCES contracts(id) ON DELETE CASCADE,
         FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
-        FOREIGN KEY (support_contact_id) REFERENCES users(id) ON DELETE SET NULL
+        FOREIGN KEY (support_contact_id) REFERENCES user(id) ON DELETE SET NULL
     );
     """)
 

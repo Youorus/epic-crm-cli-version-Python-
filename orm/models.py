@@ -19,7 +19,7 @@ class Base(DeclarativeBase):
 # USERS
 # =========================
 class UserModel(Base):
-    __tablename__ = "users"
+    __tablename__ = "user"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     username: Mapped[str] = mapped_column(String(150), nullable=False)
@@ -59,7 +59,7 @@ class ClientModel(Base):
     last_contact: Mapped[datetime | None] = mapped_column(Date())
 
     sales_contact_id: Mapped[int | None] = mapped_column(
-        ForeignKey("users.id", ondelete="SET NULL")
+        ForeignKey("user.id", ondelete="SET NULL")
     )
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
@@ -84,7 +84,7 @@ class ContractModel(Base):
         nullable=False, index=True
     )
     sales_contact_id: Mapped[int | None] = mapped_column(
-        ForeignKey("users.id", ondelete="SET NULL")
+        ForeignKey("user.id", ondelete="SET NULL")
     )
 
     # IMPORTANT : asdecimal=True pour récupérer/stocker des Decimal (pas des str)
@@ -120,7 +120,7 @@ class EventModel(Base):
         nullable=False, index=True
     )
     support_contact_id: Mapped[int | None] = mapped_column(
-        ForeignKey("users.id", ondelete="SET NULL")
+        ForeignKey("user.id", ondelete="SET NULL")
     )
 
     event_name: Mapped[str] = mapped_column(String(255), nullable=False)

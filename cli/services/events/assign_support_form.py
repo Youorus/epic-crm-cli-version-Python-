@@ -8,6 +8,34 @@ from security.authorization import AuthContext, AuthzError, Role, can_read_users
 from services.usecases.event_crud import EventService
 from services.usecases.user_crud import UserService
 
+# --- Helpers locaux de rôles -------------------------------------------------
+
+
+def _role_name(r) -> str:
+    """
+    Retourne un nom de rôle lisible et robuste quel que soit le type :
+    - Enum (Role / UserRole) -> r.value
+    - str -> r (inchangé)
+    - None -> "—"
+    """
+    if r is None:
+        return "—"
+    # Enums Role / UserRole ont un .value ; sinon str(r)
+    return getattr(r, "value", str(r))
+
+def _is_gestion_role(r) -> bool:
+    """
+    True si r vaut 'GESTION' (accepte Role.GESTION, UserRole.GESTION, 'GESTION', etc.).
+    """
+    name = _role_name(r)
+    return isinstance(name, str) and name.upper() == "GESTION"
+
+def _is_support_role(r) -> bool:
+    """
+    True si r vaut 'SUPPORT' (accepte Role.SUPPORT, UserRole.SUPPORT, 'SUPPORT', etc.).
+    """
+    name = _role_name(r)
+    return isinstance(name, str) and name.upper() == "SUPPORT"
 
 
 
@@ -81,7 +109,7 @@ def assign_support_to_event_form(
         return None
     support_id = int(s)
 
-    # Validation droit de lecture des users + existence + rôle SUPPORT
+    # Validation droit de lecture des user + existence + rôle SUPPORT
     try:
         if not can_read_users(auth):
             print("⛔ Accès refusé pour lire les utilisateurs.")

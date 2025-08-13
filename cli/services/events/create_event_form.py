@@ -10,7 +10,8 @@ from models.event import Event
 from security.authorization import AuthContext, Role, AuthzError
 from services.usecases.event_crud import EventService
 from services.usecases.contract_crud import ContractService
-
+import builtins as _bl
+input = _bl.input
 
 
 

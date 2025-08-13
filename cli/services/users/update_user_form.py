@@ -1,4 +1,4 @@
-# cli/services/users/update_user_form.py
+# cli/services/user/update_user_form.py
 from __future__ import annotations
 
 import os

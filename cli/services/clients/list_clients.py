@@ -96,7 +96,7 @@ def list_clients(
     try:
         sales_contact_names = _load_sales_contact_names()
     except Exception:
-        # Si la récupération des users plante, on retombe gracieusement sur l'ID seul
+        # Si la récupération des user plante, on retombe gracieusement sur l'ID seul
         sales_contact_names = {}
 
     if not display:
