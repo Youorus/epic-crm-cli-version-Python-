@@ -54,7 +54,7 @@ def support_menu() -> None:
             except Exception as e:
                 print(f"❌ Erreur pendant la mise à jour : {e}")
 
-        elif choice == "9":
+        elif choice == "3":
             logout()
             print("✅ Déconnecté avec succès.")
             return
